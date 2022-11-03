@@ -24,6 +24,7 @@ def muestra_tablero(tablero):
     print("************************************")
 
 def coloca_minas(tablero,minas,fil,col):
+    
     '''Coloca en el tablero que le pasemos el número de minas que le pasemos'''
 
     minas_ocultas = []
@@ -82,7 +83,7 @@ def menu():
     '''Devuelve el movimiento u opción elegida por el usuario'''
 
     print()
-    opcion = input("¿w/a/s/d  - m - b/v")
+    opcion = input("¿w/a/s/d  - m - b/v? ")
     return opcion
 
 """def reemplaza_ceros(tablero):
@@ -142,77 +143,114 @@ muestra_tablero(visible)
 minas_marcadas = []
 
 jugando = True
+r = 's'
 
-while jugando:
+while r == 's':
+    while jugando:
 
-    mov = menu()
+        mov = menu()
 
-    if mov == "w":
-        if y == 0:
-            y = 0
-        else:
-            visible[y][x] = real 
-            y -= 1
-            real = visible[y][x]
-            visible[y][x] = "X"
-    elif mov == "s":
-        if y == filas-1:
-            y = filas-1
-        else: 
-            visible[y][x] = real 
-            y += 1
-            real = visible[y][x]
-            visible[y][x] = "X"
-    elif mov == "a":
-        if x == 0:
-            x = 0
-        else: 
-            visible[y][x] = real 
-            x -= 1
-            real = visible[y][x]
-            visible[y][x] = "X"
-    elif mov == "d":
-        if x == columnas-1:
-            x = columnas-1
-        else: 
-            visible[y][x] = real 
-            x += 1
-            real = visible[y][x]
-            visible[y][x] = "X"
-    elif mov == "b":
-        if real == "-":
-            visible[y][x] = "#"
-            real = visible[y][x]
-            if (y,x) not in minas_marcadas:
-                minas_marcadas.append((y,x))
-    elif mov == "v":
-        if real == "#":
-            visible[y][x] = "-"
-            real = visible[y][x]
-            if (y,x) in minas_marcadas:
-                minas_marcadas.remove((y,x))
-    elif mov == "m":
-        if oculto[y][x] == 9:
-            visible[y][x] = "@"
-            jugando = False
-        elif oculto[y][x] != 0:
-            visible[y][x] = oculto[y][x]
-            real = visible[y][x]
-        elif oculto[y][x] == 0:
-            visible[y][x] = 0
-            visible = rellenado(oculto,visible,y,x,filas,columnas,"-")            
-            real = visible[y][x]
+        if mov == "w":
+            if y == 0:
+                y = 0
+            else:
+                visible[y][x] = real 
+                y -= 1
+                real = visible[y][x]
+                visible[y][x] = "X"
+        elif mov == "s":
+            if y == filas-1:
+                y = filas-1
+            else: 
+                visible[y][x] = real 
+                y += 1
+                real = visible[y][x]
+                visible[y][x] = "X"
+        elif mov == "a":
+            if x == 0:
+                x = 0
+            else: 
+                visible[y][x] = real 
+                x -= 1
+                real = visible[y][x]
+                visible[y][x] = "X"
+        elif mov == "d":
+            if x == columnas-1:
+                x = columnas-1
+            else: 
+                visible[y][x] = real 
+                x += 1
+                real = visible[y][x]
+                visible[y][x] = "X"
+        elif mov == "b":
+            if real == "-":
+                visible[y][x] = "#"
+                real = visible[y][x]
+                if (y,x) not in minas_marcadas:
+                    minas_marcadas.append((y,x))
+        elif mov == "v":
+            if real == "#":
+                visible[y][x] = "-"
+                real = visible[y][x]
+                if (y,x) in minas_marcadas:
+                    minas_marcadas.remove((y,x))
+        elif mov == "m":
+            if oculto[y][x] == 9:
+                visible[y][x] = "@"
+                jugando = False
+            elif oculto[y][x] != 0:
+                visible[y][x] = oculto[y][x]
+                real = visible[y][x]
+            elif oculto[y][x] == 0:
+                visible[y][x] = 0
+                visible = rellenado(oculto,visible,y,x,filas,columnas,"-")            
+                real = visible[y][x]
 
 
-    os.system("cls")
-    
-    muestra_tablero(visible)
-    
-    ganas = False 
-    
-    if tablero_completo(visible,filas,columnas,"-") and  sorted(minas_ocultas) == sorted(minas_marcadas) and real != "-":
-        ganas = True 
-        jugando = False 
+        os.system("cls")
+        
+        muestra_tablero(visible)
+        
+        ganas = False 
+        
+        if tablero_completo(visible,filas,columnas,"-") and  sorted(minas_ocultas) == sorted(minas_marcadas) and real != "-":
+            ganas = True 
+            jugando = False 
+        
+    r = input("Desea continuar? s o n ")
+    if r == 's':
+        columnas = 16
+
+        filas= 12 
+
+        visible = crea_tablero(filas,columnas,"-")
+
+        oculto = crea_tablero(filas,columnas,0)
+
+        oculto, minas_ocultas = coloca_minas(oculto, 15, filas, columnas)
+
+        oculto = coloca_pistas(oculto,filas,columnas)
+
+        presentacion()
+
+        #Colocamos ficha inicial y mostramos tablero
+
+        y = random.randint(2, filas-3)
+        x = random.randint(2, columnas-3)
+
+        real = visible[y][x]
+        visible[y][x] = "X"
+
+        os.system("cls")
+
+        muestra_tablero(visible)
+
+
+
+        minas_marcadas = []
+        jugando = True
+
+
 
 if not ganas:
     print("************************************")
