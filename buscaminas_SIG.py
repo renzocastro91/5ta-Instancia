@@ -138,11 +138,13 @@ os.system("cls")
 
 muestra_tablero(visible)
 
-#Bucle principal
+
 
 minas_marcadas = []
 
 jugando = True
+
+#Bucle principal
 r = 's'
 
 while r == 's':
@@ -216,7 +218,7 @@ while r == 's':
         if tablero_completo(visible,filas,columnas,"-") and  sorted(minas_ocultas) == sorted(minas_marcadas) and real != "-":
             ganas = True 
             jugando = False 
-        
+    
     r = input("Desea continuar? s o n ")
     if r == 's':
         columnas = 16
