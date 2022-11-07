@@ -69,19 +69,19 @@ class Tablero():
         while bandera:
             op = input('Ingrese la dificultad: 1- Fácil 2- Medio 3- Difícil: ')
             if op == '1':
-                self.filas = 15
-                self.columnas = 15
-                self.cantMinas = 15
+                self.filas = 20
+                self.columnas = 35
+                self.cantMinas = 30
                 bandera = False 
             elif op == '2':
-                self.filas = 20
-                self.columnas = 20
-                self.cantMinas = 20
+                self.filas = 35
+                self.columnas = 45
+                self.cantMinas = 50
                 bandera = False 
             elif op == '3':
-                self.filas = 30
-                self.columnas = 30
-                self.cantMinas = 35
+                self.filas = 45
+                self.columnas = 55
+                self.cantMinas = 60
                 bandera = False 
             else:
                 print('Opción ingresada incorrecta') 
@@ -125,6 +125,22 @@ class Tablero():
                                 if self.tableroOculto[y+i][x+j].getCelda().getValor() != 9:
                                     self.tableroOculto[y+i][x+j].getCelda().incrementarValor()
 
+    def reemplazaCeros(self):
+        for i in range(self.filas):
+            for j in range(self.columnas):
+                if self.tableroVisible[i][j] == 0:
+                    self.tableroVisible[i][j] = " "
+
+        return self.tableroVisible
+
+    def reemplazaNueves(self):
+        for i in range(self.filas):
+            for j in range(self.columnas):
+                if self.tableroOculto[i][j].getCelda().getValor() == 9:
+                    self.tableroVisible[i][j] = "@"
+
+        return self.tableroVisible
+    
     def getTableroOculto(self):
         return self.tableroOculto
 
@@ -145,21 +161,29 @@ class Buscaminas():
     def __init__(self,tableros):
         self.tableros = tableros 
         self.score = None 
-        self.listaJugadas: None 
 
     def muestraTablero(self,tablero):
         if tablero == self.tableros.getTableroVisible():
+            print()
+            for columna in range(self.tableros.getColumnas()+2):
+                print('*', end=' ')
+            print()
             for fila in tablero:
-                print(end=" ")
+                print('*',end=" ")
                 for elem in fila: 
                     print(elem, end=' ')
-                print()
-        else: 
+                print('*')
+            for columna in range(self.tableros.getColumnas()+2):
+                print('*', end=' ')
+        else:
+            print() 
             for fila in tablero:
-                print(end=" ")
+                print('*',end=" ")
                 for elem in fila: 
                     print(elem.getCelda().getValor(), end=' ')
-                print()
+                print('*')
+            for columna in range(self.tableros.getColumnas()+2):
+                print('*', end=' ')
     
     def rellenado(self,y,x,val):
         '''Recorre todas las casillas vecinas y comprueba si son ceros, si es así las descubre, y recorre las vecinas de estas, hasta encontrar casillas con pistas, que también 
@@ -173,6 +197,7 @@ class Buscaminas():
                     if 0 <= y+i <= self.tableros.getFilas()-1 and 0 <= x+j <= self.tableros.getColumnas()-1:
                         if self.tableros.getTableroVisible()[y+i][x+j] == val and self.tableros.getTableroOculto()[y+i][x+j].getCelda().getValor() == 0:
                             self.tableros.getTableroVisible()[y+i][x+j] = 0
+                            self.sumaPuntos()
                             if (y+i, x+j) not in ceros:
                                 ceros.append((y+i, x+j))
                         else: 
@@ -216,19 +241,30 @@ class Buscaminas():
     def getTableros(self):
         return self.tableros
 
+    def setScore(self):
+        self.score = 0
+    
+    def sumaPuntos(self):
+        self.score = self.score + 100
+
+    def getScore(self):
+        return self.score
+
 def inicializacion_juego():
     tableros = Tablero()
     tableros.creaTablero()
     tableros.colocaMinas()
     tableros.colocaPistas()
     juego = Buscaminas(tableros)
+    juego.setScore()
     juego.presentacion() 
     #Colocamos ficha inicial y mostramos tablero    
     y = random.randint(2, tableros.getFilas()-3)
     x = random.randint(2, tableros.getColumnas()-3)
     real = juego.getTableros().getTableroVisible()[y][x]
     juego.getTableros().getTableroVisible()[y][x] = "X"
-    os.system("cls")  
+    os.system("cls")
+    print(f"Puntaje: {juego.getScore()} Puntos" )  
     juego.muestraTablero(juego.getTableros().getTableroVisible())
     minas_marcadas = []
     jugando = True
@@ -237,7 +273,9 @@ def inicializacion_juego():
 
 
 #Programa principal
+os.system("cls")
 tableros, y, x, real, juego, minasMarcadas, jugando = inicializacion_juego()
+listaJugadas = []
 
 #Bucle principal
 r = 's'
@@ -298,11 +336,12 @@ while r == 's':
                 real = juego.getTableros().getTableroVisible()[y][x]
             elif juego.getTableros().getTableroOculto()[y][x].getCelda().getValor() == 0:
                 juego.getTableros().getTableroVisible()[y][x] = 0
-                juego.tableros.tableroVisible = juego.rellenado(y,x,"-")            
+                juego.tableros.tableroVisible = juego.rellenado(y,x,"-")
+                juego.tableros.tableroVisible = tableros.reemplazaCeros()          
                 real = juego.getTableros().getTableroVisible()[y][x]
 
         os.system("cls")
-        
+        print(f"Puntaje: {juego.getScore()} Puntos" )
         juego.muestraTablero(juego.getTableros().getTableroVisible())
         
         ganas = False 
@@ -311,15 +350,34 @@ while r == 's':
             ganas = True 
             jugando = False 
     if not ganas:
-        print("************************************")
-        print("------------------------------------")
-        print("             HAS PERDIDO            ")
-        print("------------------------------------")
-    else: 
-        print("------------------------------------")
-        print("             HAS GANADO!!           ")
-        print("------------------------------------")
+        os.system("cls")
+        print()  
+        juego.tableros.tableroVisible = tableros.reemplazaNueves()
+        print(f"|| Puntaje: {juego.getScore()} Puntos Totales ||", end=" ")
+        print('    || Has Perdido :( ||')
+        juego.muestraTablero(juego.getTableros().getTableroVisible())
+        print()                   
+    else:
+        os.system("cls")
+        print()  
+        juego.tableros.tableroVisible = tableros.reemplazaNueves()
+        print(f"Puntaje: {juego.getScore()} Puntos Totales", end=" ")
+        print('Has GANADO!!!! :)')
+        juego.muestraTablero(juego.getTableros().getTableroVisible())
+        print()  
         
+    listaJugadas.append(juego.getScore())
     r = input("Desea continuar? s o n: ")
-    if r == 's':
+    if r == 's':        
         tableros, y, x, real, juego, minasMarcadas, jugando = inicializacion_juego()
+
+print("---------------------------------------------------------------------------------")
+print("Muchas gracias por Jugar")
+cont = 1
+print("---------------------------------------------------------------------------------")
+print("Top de Jugadas")
+print("---------------------------------------------------------------------------------")
+listaJugadas.sort(reverse=True)
+for jug in listaJugadas:    
+    print(f"Top N° {cont}: {jug} Puntos")
+    cont += 1
