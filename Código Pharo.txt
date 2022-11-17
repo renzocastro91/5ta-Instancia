@@ -1,0 +1,511 @@
+Pharo
+
+Object subclass: #Elemento
+	instanceVariableNames: 'valor'
+	classVariableNames: ''
+	package: 'juegoBuscaminas'
+
+
+Métodos
+
+esBomba
+^false
+
+esElemento
+^true
+
+incrementarValor
+valor:= valor + 1
+
+initialize
+
+super initialize.
+valor:= 0.
+
+printOn: unFlujo
+
+unFlujo nextPutAll: valor asString.
+
+valor 
+^ valor
+
+valor: unValor
+valor:= unValor .
+
+----------------------------------------------------------------------
+Elemento subclass: #Bomba
+	instanceVariableNames: ''
+	classVariableNames: ''
+	package: 'juegoBuscaminas'
+
+Métodos
+
+esBomba
+^true
+
+esElemento
+^false
+
+incrementarValor
+valor:= valor + 0.
+
+initialize 
+valor:= 9.
+
+---------------------------------------------------------------------
+
+Object subclass: #Tablero
+	instanceVariableNames: 'tableroOculto tableroVisible filas columnas cantMinas minasOcultas'
+	classVariableNames: ''
+	package: 'juegoBuscaminas'
+
+Métodos
+
+cantMinas
+^cantMinas
+
+cantMinas: unNumero
+cantMinas:= unNumero.
+
+colocaMinas
+
+|numero x y bombaNueva arreglo|
+
+numero:= 0.
+[ numero < cantMinas ] whileTrue:[
+	y:= (1 to: filas) atRandom.
+	x:= (1 to: columnas) atRandom.
+	(((tableroOculto at: y) at: x) esElemento) ifTrue:[
+		bombaNueva:= Bomba new.
+		(tableroOculto at: y) at: x put: bombaNueva.
+		arreglo:= Array new: 2.
+		arreglo at: 1 put: y.
+		arreglo at: 2 put: x.
+		minasOcultas add: arreglo.
+		numero:= numero + 1.
+		]
+	]
+
+colocaPistas
+1 to: filas do:[:y|
+	1 to: columnas do:[:x|
+		((tableroOculto at:y) at:x) esBomba ifTrue:[
+			-1 to: 1 do:[:i|
+				-1 to: 1 do:[:j|
+				(	((1 <= (y+i)) and:((y+i) <= filas)) and: ((1 <= (x+j)) and:((x+j) <= columnas)) ) ifTrue: [ 
+						((tableroOculto at:(y+i)) at:(x+j)) esElemento ifTrue: [ 
+							((tableroOculto at:(y+i)) at:(x+j)) incrementarValor 
+							 ]
+						 ]
+					]
+				
+				]
+			]
+		]
+	
+	]
+
+columnas
+^ columnas 
+
+columnas: unNumero
+columnas := unNumero.
+
+creaTablero
+|nuevo|
+tableroOculto:= Array new: filas.
+tableroVisible:= Array new: filas.
+
+1 to: filas do:[:i|
+	tableroOculto at: i put: (Array new: columnas).
+	tableroVisible at: i put: (Array new: columnas).
+	
+	1 to: columnas do:[:j|
+		nuevo := Elemento new.
+		(tableroOculto at: i) at: j put: nuevo.
+		(tableroVisible at: i) at: j put: '-'
+		]
+	
+	].
+
+eligeDificultad: unNumero 
+
+unNumero = '1' ifTrue:[
+	self filas: 20.
+	self columnas: 35.
+	self cantMinas: 30.
+].
+unNumero = '2' ifTrue:[
+	self filas: 24.
+	self columnas: 60.
+	self cantMinas: 50.
+].
+unNumero = '3' ifTrue:[
+	self filas: 28.
+	self columnas: 75.
+	self cantMinas: 70.
+].
+unNumero = '4' ifTrue:[
+	self filas: 10.
+	self columnas: 10.
+	self cantMinas: 2.
+].
+
+filas
+^filas
+
+filas: unNumero
+filas:= unNumero .
+
+initialize 
+super initialize .
+minasOcultas := OrderedCollection new.
+cantMinas:= 0.
+filas:= 0.
+columnas:= 0.
+
+minasOcultas
+^ minasOcultas 
+
+reemplazaCeros
+1 to: filas do:[:i|
+	1 to: columnas do:[:j|
+		((tableroVisible at:i) at: j)  = 0 ifTrue:[
+			(tableroVisible at:i) at: j put: ' '.
+			]
+		]
+	].
+^ tableroVisible
+
+reemplazaNueves
+
+1 to: filas do:[:i|
+	1 to: columnas do:[:j|
+		((tableroVisible at:i) at: j)  = 9 ifTrue:[
+			(tableroVisible at:i) at: j put: '@'.
+			]
+		]
+	].
+^ tableroVisible.
+
+tableroOculto
+^ tableroOculto 
+
+tableroOculto: unTablero
+
+tableroOculto := unTablero .
+
+tableroVisible
+^ tableroVisible 
+
+tableroVisible: unTablero
+
+tableroVisible := unTablero .
+
+----------------------------------------------------------------
+
+Object subclass: #Buscaminas
+	instanceVariableNames: 'tableros score'
+	classVariableNames: ''
+	package: 'juegoBuscaminas'
+
+Métodos
+
+initialize 
+|op|
+super initialize .
+score:= 0.
+tableros:= Tablero new.
+op:= UIManager default request: 'Ingrese dificultad 1- Fácil 2- Medio 3- Difícil'.
+tableros eligeDificultad: op.
+tableros creaTablero.
+tableros colocaMinas.
+tableros colocaPistas.
+
+menu 
+
+|op|
+
+op:= UIManager default request: 'w/s/a/d - m - b/v'.
+
+^op
+
+muestraTablero: unTablero
+
+1 to: (self tableros columnas + 2) do:[:p|
+	Transcript show: '*'
+	].
+Transcript show: '';cr.
+unTablero do:[:i|
+	Transcript show: '*'.
+	i do:[:j|
+		Transcript show: j
+		].
+	Transcript show: '*';cr.
+	].
+1 to: (self tableros columnas + 2) do:[:p|
+	Transcript show: '*'.
+	].
+Transcript show: '';cr.
+
+presentacion
+|op|
+Transcript clear.
+Transcript show: '**********************************';cr.
+Transcript show: '*                                *';cr.
+Transcript show: '*           Buscaminas           *';cr.
+Transcript show: '*         w/s/a/d - Mover        *';cr.
+Transcript show: '*           m - Mostrar          *';cr.
+Transcript show: '*      b/v - Marcar/Desmarcar    *';cr.
+Transcript show: '*                                *';cr.
+Transcript show: '**********************************';cr.
+
+op:= UIManager default request: 'Desea Comenzar? 1- Si 2- No'.
+
+rellenado: val y: unY x: unX
+
+|coord ceros y x tam|
+
+ceros:= OrderedCollection new.
+coord:= Array new: 2.
+coord at: 1 put: unY.
+coord at: 2 put: unX.
+ceros add: coord.
+
+[(ceros size) > 0] whileTrue:[
+	tam:= ceros size.
+	y:= (ceros at:tam) at: 1.
+	x:= (ceros at:tam) at: 2.
+	coord:= Array new:2.
+	coord at: 1 put: y.
+	coord at: 2 put: x.
+	ceros remove: coord.
+	-1 to: 1 do:[:i|
+		-1 to: 1 do:[:j|
+			(((1 <= (y+i)) and:((y+i) <= tableros filas)) and: ((1 <= (x+j)) and:((x+j) <= tableros columnas))) ifTrue:[
+				((((tableros tableroVisible at:(y+i)) at:(x+j)) = val) and: (((tableros tableroOculto at:(y+i)) at:(x+j)) valor = 0)) ifTrue:[
+					(tableros tableroVisible at:(y+i)) at: (x+j) put: 0.
+					self sumaPuntos: 50.
+					coord:= Array new: 2.
+					coord at: 1 put: (y+i).
+					coord at: 2 put: (x+j).
+					(ceros includes: coord) ifFalse:[
+						ceros add: coord
+						] 
+					] ifFalse:[
+					self sumaPuntos: 60.
+					(tableros tableroVisible at:(y+i)) at: (x+j) put: ((tableros tableroOculto at:(y+i)) at: (x+j)) valor.
+					] 
+				]
+			]
+		] 
+	].
+^tableros tableroVisible 
+
+
+score
+^ score
+
+sumaPuntos: unPuntaje
+
+score:= score + unPuntaje.
+
+tableroCompleto: unValor
+
+1 to: tableros filas do:[:i|
+	1 to: tableros columnas do:[:j|
+		(((tableros tableroVisible at: i) at: j) = unValor) ifTrue:[
+			^false
+			]
+		]
+	].
+^true
+
+tableros
+^ tableros 
+
+tableros: dosTableros
+tableros:= dosTableros 
+
+verificaIgualdad: unaLista
+
+|cont|
+cont:= 0.
+
+tableros minasOcultas do:[:coord1|
+	unaLista do:[:coord2|
+		(coord1 = coord2) ifTrue:[
+			cont:= cont + 1
+			]
+		]
+	].
+
+(cont = (tableros minasOcultas) size) ifTrue:[
+	^true
+	].
+^false
+
+
+-------------------------------------------------------------
+
+Playground
+
+|tableros op juego y x real jugando minasMarcadas listasJugadas respuesta mov arregloSop ganas cont|
+
+"Inicialización del juego"
+juego:= Buscaminas new.
+juego presentacion.
+
+"Colocamos ficha inicial y mostramos el tablero visible"
+y:= (2 to: (juego tableros filas) - 3) atRandom.
+x:= (2 to: (juego tableros columnas) - 3) atRandom. 
+real:= (juego tableros tableroVisible at:y) at: x.
+(juego tableros tableroVisible at:y) at: x put: 'X'.
+Transcript clear.
+Transcript show: 'Puntaje: ', (juego score) asString , ' Puntos';cr.
+juego muestraTablero: juego tableros tableroVisible.
+minasMarcadas := OrderedCollection new.
+jugando:= true.
+listasJugadas := SortedCollection new.
+respuesta:= 's'.
+
+"Bucle Principal"
+
+[respuesta = 's'] whileTrue:[
+	[ jugando ] whileTrue:[
+	mov:= juego menu.
+	mov = 'w' ifTrue:[
+		y = 1 ifTrue:[
+			y:= 1
+			] ifFalse:[
+			(juego tableros tableroVisible at: y) at: x put: real.
+			y:= y - 1.
+			real:= (juego tableros tableroVisible at: y) at: x.
+			(juego tableros tableroVisible at:y) at:x put: 'X'.
+			]
+		].
+	mov = 's' ifTrue:[
+		y = juego tableros filas ifTrue:[
+			y:= juego tableros filas
+			] ifFalse:[
+			(juego tableros tableroVisible at: y) at: x put: real.
+			y:= y + 1.
+			real:= (juego tableros tableroVisible at: y) at: x.
+			(juego tableros tableroVisible at:y) at:x put: 'X'.
+			]
+		].
+	mov = 'a' ifTrue:[
+		x = 1 ifTrue:[
+			x:= 1
+			] ifFalse:[
+			(juego tableros tableroVisible at: y) at: x put: real.
+			x:= x - 1.
+			real:= (juego tableros tableroVisible at: y) at: x.
+			(juego tableros tableroVisible at:y) at:x put: 'X'.
+			]
+		].
+	mov = 'd' ifTrue:[
+		x = juego tableros columnas ifTrue:[
+			x:= juego tableros columnas
+			] ifFalse:[
+			(juego tableros tableroVisible at: y) at: x put: real.
+			x:= x + 1.
+			real:= (juego tableros tableroVisible at: y) at: x.
+			(juego tableros tableroVisible at:y) at:x put: 'X'.
+			]
+		].
+	mov = 'b' ifTrue:[
+		 real = '-' ifTrue:[
+			(juego tableros tableroVisible at:y) at:x put: '#'.
+			real:= (juego tableros tableroVisible at:y) at:x.
+			arregloSop:= Array new:2.
+			arregloSop at: 1 put: y.
+			arregloSop at: 2 put: x.
+			(minasMarcadas includes: arregloSop) ifFalse:[
+				minasMarcadas add: arregloSop.
+				]
+			] 
+		].
+	mov = 'v' ifTrue:[
+		 real = '#' ifTrue:[
+			(juego tableros tableroVisible at:y) at:x put: '-'.
+			real:= (juego tableros tableroVisible at:y) at:x.
+			arregloSop:= Array new:2.
+			arregloSop at: 1 put: y.
+			arregloSop at: 2 put: x.
+			(minasMarcadas includes: arregloSop) ifTrue:[
+				minasMarcadas remove: arregloSop.
+				]
+			] 
+		].
+	mov = 'm' ifTrue:[
+		 (((juego tableros tableroOculto at:y) at: x) esBomba) ifTrue:[
+			(juego tableros tableroVisible at:y) at:x put: '@'.
+			jugando:= false 
+			].
+		(((juego tableros tableroOculto at:y) at: x) esElemento) ifTrue:[
+			(juego tableros tableroVisible at:y) at:x put: ((juego tableros tableroOculto at:y) at: x) valor.
+			juego sumaPuntos: 100.
+			real:= (juego tableros tableroVisible at:y) at:x
+			].
+		(((juego tableros tableroOculto at:y) at: x) valor = 0) ifTrue:[
+			(juego tableros tableroVisible at:y) at:x put: 0.
+			juego tableros tableroVisible: (juego rellenado: '-' y: y x: x).
+			juego tableros tableroVisible: (juego tableros reemplazaCeros).
+			real:= (juego tableros tableroVisible at:y) at:x
+			].
+		].
+	Transcript clear.
+	Transcript show: 'Puntaje: ', (juego score) asString , ' Puntos';cr.
+	juego muestraTablero: juego tableros tableroVisible.
+	ganas:= false.
+	(((juego tableroCompleto: '-') and: (juego verificaIgualdad: minasMarcadas)) and: ((real = '-') not)) ifTrue: [ 
+		ganas:= true.
+		jugando:= false.
+		 ]
+	].
+ganas ifFalse:[
+	Transcript clear.
+	juego tableros tableroVisible: (juego tableros reemplazaNueves).
+	Transcript show: 'Puntaje: ', (juego score) asString , ' Puntos totales';cr.
+	Transcript show: 'Perdiste :(';cr.
+	juego muestraTablero: juego tableros tableroVisible.
+	]	ifTrue:[
+		Transcript clear.
+		juego tableros tableroVisible: (juego tableros reemplazaNueves).
+		Transcript show: 'Puntaje: ', (juego score) asString , ' Puntos totales';cr.
+		Transcript show: 'Ganaste :)';cr.
+		juego muestraTablero: juego tableros tableroVisible.
+	].
+listasJugadas add: juego score.
+respuesta:= UIManager default request: 'Desea Continuar? s o n'.
+respuesta = 's' ifTrue:[
+	
+	"Inicialización del juego"
+	juego:= Buscaminas new.
+	juego presentacion.
+
+	"Colocamos ficha inicial y mostramos el tablero visible"
+	y:= (2 to: (juego tableros filas) - 3) atRandom.
+	x:= (2 to: (juego tableros columnas) - 3) atRandom. 
+	real:= (juego tableros tableroVisible at:y) at: x.
+	(juego tableros tableroVisible at:y) at: x put: 'X'.
+	Transcript clear.
+	Transcript show: 'Puntaje: ', (juego score) asString , ' Puntos';cr.
+	juego muestraTablero: juego tableros tableroVisible.
+	minasMarcadas := OrderedCollection new.
+	jugando:= true.
+	]
+].
+Transcript clear.
+Transcript show:'--------------------------------';cr.
+Transcript show:'Muchas gracias por Jugar';cr.
+Transcript show:'--------------------------------';cr.
+Transcript show:'--------------------------------';cr.
+Transcript show:'Top Jugadas';cr.
+Transcript show:'--------------------------------';cr.
+cont:= listasJugadas size.
+listasJugadas do:[:punt|
+Transcript show: 'Top ', cont asString, ': ', punt asString;cr.
+cont:= cont - 1. 
+]
