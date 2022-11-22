@@ -205,14 +205,20 @@ tableroVisible := unTablero .
 ----------------------------------------------------------------
 
 Object subclass: #Buscaminas
-	instanceVariableNames: 'tableros score'
+	instanceVariableNames: 'tableros score dificultad'
 	classVariableNames: ''
 	package: 'juegoBuscaminas'
 
 Métodos
 
-initialize 
-|op|
+dificultad
+	^ dificultad
+
+dificultad: anObject
+	dificultad := anObject
+
+initialize
+|op| 
 super initialize .
 score:= 0.
 tableros:= Tablero new.
@@ -221,6 +227,21 @@ tableros eligeDificultad: op.
 tableros creaTablero.
 tableros colocaMinas.
 tableros colocaPistas.
+op = '1' ifTrue:[
+	dificultad := 'Fácil'
+	] ifFalse:[
+	op = '2' ifTrue:[
+		dificultad:= 'Media'
+		] ifFalse:[
+		op = '3' ifTrue:[
+			dificultad := 'Difícil'
+			] ifFalse:[
+			op = '4' ifTrue:[
+				dificultad := 'Misteriosa'
+				]
+			]
+		]
+	].
 
 menu 
 
@@ -257,10 +278,13 @@ Transcript show: '*           Buscaminas           *';cr.
 Transcript show: '*         w/s/a/d - Mover        *';cr.
 Transcript show: '*           m - Mostrar          *';cr.
 Transcript show: '*      b/v - Marcar/Desmarcar    *';cr.
+Transcript show: '*        Regla de Puntajes:      *';cr.
+Transcript show: '*    Espacio Vacío -> 20pts      *';cr.
+Transcript show: '*         Pistas -> 60pts        *';cr.
 Transcript show: '*                                *';cr.
 Transcript show: '**********************************';cr.
 
-op:= UIManager default request: 'Desea Comenzar? 1- Si 2- No'.
+op:= UIManager default request: 'Enter para comenzar...'.
 
 rellenado: val y: unY x: unX
 
@@ -285,7 +309,7 @@ ceros add: coord.
 			(((1 <= (y+i)) and:((y+i) <= tableros filas)) and: ((1 <= (x+j)) and:((x+j) <= tableros columnas))) ifTrue:[
 				((((tableros tableroVisible at:(y+i)) at:(x+j)) = val) and: (((tableros tableroOculto at:(y+i)) at:(x+j)) valor = 0)) ifTrue:[
 					(tableros tableroVisible at:(y+i)) at: (x+j) put: 0.
-					self sumaPuntos: 50.
+					self sumaPuntos: 20.
 					coord:= Array new: 2.
 					coord at: 1 put: (y+i).
 					coord at: 2 put: (x+j).
@@ -293,7 +317,6 @@ ceros add: coord.
 						ceros add: coord
 						] 
 					] ifFalse:[
-					self sumaPuntos: 60.
 					(tableros tableroVisible at:(y+i)) at: (x+j) put: ((tableros tableroOculto at:(y+i)) at: (x+j)) valor.
 					] 
 				]
@@ -354,6 +377,7 @@ Playground
 
 "Inicialización del juego"
 juego:= Buscaminas new.
+
 juego presentacion.
 
 "Colocamos ficha inicial y mostramos el tablero visible"
@@ -362,7 +386,8 @@ x:= (2 to: (juego tableros columnas) - 3) atRandom.
 real:= (juego tableros tableroVisible at:y) at: x.
 (juego tableros tableroVisible at:y) at: x put: 'X'.
 Transcript clear.
-Transcript show: 'Puntaje: ', (juego score) asString , ' Puntos';cr.
+Transcript show: 'Puntaje: ', (juego score) asString , ' Puntos  '.
+Transcript show: 'Dificultad: ', juego dificultad;cr.
 juego muestraTablero: juego tableros tableroVisible.
 minasMarcadas := OrderedCollection new.
 jugando:= true.
@@ -445,7 +470,7 @@ respuesta:= 's'.
 			].
 		(((juego tableros tableroOculto at:y) at: x) esElemento) ifTrue:[
 			(juego tableros tableroVisible at:y) at:x put: ((juego tableros tableroOculto at:y) at: x) valor.
-			juego sumaPuntos: 100.
+			juego sumaPuntos: 60.
 			real:= (juego tableros tableroVisible at:y) at:x
 			].
 		(((juego tableros tableroOculto at:y) at: x) valor = 0) ifTrue:[
@@ -456,7 +481,8 @@ respuesta:= 's'.
 			].
 		].
 	Transcript clear.
-	Transcript show: 'Puntaje: ', (juego score) asString , ' Puntos';cr.
+	Transcript show: 'Puntaje: ', (juego score) asString , ' Puntos  '.
+	Transcript show: 'Dificultad: ', juego dificultad;cr.
 	juego muestraTablero: juego tableros tableroVisible.
 	ganas:= false.
 	(((juego tableroCompleto: '-') and: (juego verificaIgualdad: minasMarcadas)) and: ((real = '-') not)) ifTrue: [ 
@@ -467,14 +493,14 @@ respuesta:= 's'.
 ganas ifFalse:[
 	Transcript clear.
 	juego tableros tableroVisible: (juego tableros reemplazaNueves).
-	Transcript show: 'Puntaje: ', (juego score) asString , ' Puntos totales';cr.
-	Transcript show: 'Perdiste :(';cr.
+	Transcript show: 'Puntaje: ', (juego score) asString , ' Puntos totales'.
+	Transcript show: '      ººº|PERDISTE|ººº :(';cr.
 	juego muestraTablero: juego tableros tableroVisible.
 	]	ifTrue:[
 		Transcript clear.
 		juego tableros tableroVisible: (juego tableros reemplazaNueves).
-		Transcript show: 'Puntaje: ', (juego score) asString , ' Puntos totales';cr.
-		Transcript show: 'Ganaste :)';cr.
+		Transcript show: 'Puntaje: ', (juego score) asString , ' Puntos totales'.
+		Transcript show: '      ººº||GANASTE!!!!!!||ººº :)';cr.
 		juego muestraTablero: juego tableros tableroVisible.
 	].
 listasJugadas add: juego score.
@@ -491,7 +517,8 @@ respuesta = 's' ifTrue:[
 	real:= (juego tableros tableroVisible at:y) at: x.
 	(juego tableros tableroVisible at:y) at: x put: 'X'.
 	Transcript clear.
-	Transcript show: 'Puntaje: ', (juego score) asString , ' Puntos';cr.
+	Transcript show: 'Puntaje: ', (juego score) asString , ' Puntos'.
+	Transcript show: 'Dificultad: ', juego dificultad;cr.
 	juego muestraTablero: juego tableros tableroVisible.
 	minasMarcadas := OrderedCollection new.
 	jugando:= true.
@@ -509,3 +536,7 @@ listasJugadas do:[:punt|
 Transcript show: 'Top ', cont asString, ': ', punt asString;cr.
 cont:= cont - 1. 
 ]
+
+
+
+

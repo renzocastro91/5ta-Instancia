@@ -71,9 +71,9 @@ class Tablero():
                 bandera = False
             else:
                 print('Opción ingresada incorrecta') 
+        return op
 
     def creaTablero(self):
-        self.eligeDificultad()
         self.tableroOculto = []
         self.tableroVisible = []
         for i in range(self.filas):
@@ -133,23 +133,25 @@ class Tablero():
     def sTableroVisible(self,tablero):
         self.tableroVisible = tablero 
 
-    def filas(self):
-        return self.filas
-
-    def columnas(self):
-        return self.columnas
-
-    def minasOcultas(self):
-        return self.minasOcultas
 
 
 class Buscaminas():
     def __init__(self):
         self.tableros = None
         self.score = 0
+        self.dificultad=None
 
     def inicializacion(self):
         self.tableros = Tablero()
+        op = self.tableros.eligeDificultad()
+        if op == '1':
+            self.dificultad = 'Fácil'
+        elif op == '2':
+            self.dificultad = 'Media'
+        elif op == '3':
+            self.dificultad = 'Difícil'
+        elif op == '4':
+            self.dificultad = 'Misteriosa'
         self.tableros.creaTablero()
         self.tableros.colocaMinas()
         self.tableros.colocaPistas()
@@ -167,6 +169,18 @@ class Buscaminas():
                 print('*')
             for columna in range(self.tableros.columnas+2):
                 print('*', end=' ')
+        else:
+            print()
+            for columna in range(self.tableros.columnas+2):
+                print('*', end=' ')
+            print()
+            for fila in tablero:
+                print('*',end=" ")
+                for elem in fila: 
+                    print(elem.valor, end=' ')
+                print('*')
+            for columna in range(self.tableros.columnas+2):
+                print('*', end=' ')
     
     def rellenado(self,y,x,val):
         '''Recorre todas las casillas vecinas y comprueba si son ceros, si es así las descubre, y recorre las vecinas de estas, hasta encontrar casillas con pistas, que también 
@@ -180,11 +194,10 @@ class Buscaminas():
                     if 0 <= y+i <= self.tableros.filas -1 and 0 <= x+j <= self.tableros.columnas-1:
                         if self.tableros.tableroVisible[y+i][x+j] == val and self.tableros.tableroOculto[y+i][x+j].valor == 0:
                             self.tableros.tableroVisible[y+i][x+j] = 0
-                            self.sumaPuntos(50)
+                            self.sumaPuntos(20)
                             if (y+i, x+j) not in ceros:
                                 ceros.append((y+i, x+j))
                         else:
-                            self.sumaPuntos(60) 
                             self.tableros.tableroVisible[y+i][x+j] = self.tableros.tableroOculto[y+i][x+j].valor
         return self.tableros.tableroVisible
 
@@ -211,6 +224,10 @@ class Buscaminas():
         print("*                                                   *")
         print("*               b/v - marcar/desmarcar              *")
         print("*                                                   *")
+        print("*                     Puntajes:                     *")
+        print("*               Espacio Blanco -> 20 pts            *")
+        print("*                     Pistas -> 60pts               *")
+        print("*                                                   *")
         print("*****************************************************")
         print()
         input("'Enter' para empezar... ")
@@ -222,12 +239,6 @@ class Buscaminas():
         print()
         opcion = input("¿w/a/s/d  - m - b/v? ")
         return opcion
-
-    def gTableros(self):
-        return self.tableros
-    
-    def sTableros(self,tableros):
-        self.tableros = tableros 
 
     
     def sumaPuntos(self, unPuntaje):
@@ -247,7 +258,7 @@ def inicializacion_juego():
     real = juego.tableros.tableroVisible[y][x]
     juego.tableros.tableroVisible[y][x] = "X"
     os.system("cls")
-    print(f"Puntaje: {juego.score} Puntos" )  
+    print(f"Puntaje: {juego.score} Puntos   Dificultad: {juego.dificultad}" )  
     juego.muestraTablero(juego.tableros.tableroVisible)
     minas_marcadas = []
     jugando = True
@@ -313,7 +324,7 @@ while r == 's':
                 juego.tableros.tableroVisible[y][x] = "@"
                 jugando = False
             elif juego.tableros.tableroOculto[y][x].valor != 0:
-                juego.tableros.gettableroVisible[y][x] = juego.tableros.tableroOculto[y][x].valor
+                juego.tableros.tableroVisible[y][x] = juego.tableros.tableroOculto[y][x].valor
                 juego.sumaPuntos(60)
                 real = juego.tableros.tableroVisible[y][x]
             elif juego.tableros.tableroOculto[y][x].valor == 0:
@@ -323,12 +334,12 @@ while r == 's':
                 real = juego.tableros.tableroVisible[y][x]
 
         os.system("cls")
-        print(f"Puntaje: {juego.score} Puntos" )
+        print(f"Puntaje: {juego.score} Puntos   Dificultad: {juego.dificultad}" )
         juego.muestraTablero(juego.tableros.tableroVisible)
         
         ganas = False 
         
-        if juego.tableroCompleto("-") and  sorted(juego.tableros.minasOcultas()) == sorted(minasMarcadas) and real != "-":
+        if juego.tableroCompleto("-") and  sorted(juego.tableros.minasOcultas) == sorted(minasMarcadas) and real != "-":
             ganas = True 
             jugando = False 
     if not ganas:
